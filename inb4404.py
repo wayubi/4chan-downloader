@@ -142,7 +142,9 @@ def download_thread(thread_link, args):
 
         if not args.less:
             log.info('Checking ' + board + '/' + thread)
-        time.sleep(20)
+
+        break
+        #time.sleep(20)
 
 def download_from_file(filename):
     running_links = []
