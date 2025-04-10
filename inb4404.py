@@ -42,7 +42,21 @@ def main():
         download_from_file(thread)
 
 def load(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15'})
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-User': '?1',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://boards.4chan.org',
+        'Connection': 'keep-alive',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Priority': 'u=0, i',
+        'TE': 'trailers',
+    })
     return urllib.request.urlopen(req).read()
 
 def get_title_list(html_content):
@@ -128,12 +142,17 @@ def download_thread(thread_link, args):
                     ##################################################################################
                 regex_result_cnt += 1
 
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as ex1:
             time.sleep(10)
+
+            if ex1.code == 429:
+                log.info('%s 429\'d', thread_link)
+                continue
+
             try:
                 load(thread_link)    
-            except urllib.error.HTTPError:
-                log.info('%s 404\'d', thread_link)
+            except urllib.error.HTTPError as ex2:
+                log.info('%s %s\'d', thread_link, str(ex2.code))
                 break
             continue
         except (urllib.error.URLError, http.client.BadStatusLine, http.client.IncompleteRead):
